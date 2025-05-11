@@ -1,0 +1,30 @@
+[project]
+name = "heos_relax"
+version = "0.1.0"
+description = ""
+
+authors = [
+    { name = "Steffen Wedig", email = "snw30@cam.ac.uk" },
+]
+
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mace-torch==0.3.13",
+    "polars",
+
+]
+[project.optional-dependencies]
+cuequivariance = [
+    "cuequivariance",
+    "cuequivariance-torch",
+    "cuequivariance-ops-torch-cu12"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+lint.select = ["I", "UP", "F", "E", "W", "C90", "B", "A", "RUF"]
+lint.ignore = ["E501", "B008"]
