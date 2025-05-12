@@ -1,3 +1,5 @@
+from importlib import resources
+
 import matplotlib.pyplot as plt
 import numpy as np
 import polars as ps
@@ -5,7 +7,6 @@ from ase import Atoms
 from ase.visualize.plot import plot_atoms
 from elementembeddings.composition import composition_featuriser
 from umap import UMAP
-from importlib import resources
 
 output_dir = resources.files("output")
 
@@ -52,17 +53,17 @@ class DatasetVisualisation:
         return fig
 
     def _plot_sample_structures(self, N_samples: int = 10):
-        drawn_materials_idx = np.random.choice(np.arange(len(self.atoms)),size = N_samples,replace = False)
-
+        drawn_materials_idx = np.random.choice(
+            np.arange(len(self.atoms)), size=N_samples, replace=False
+        )
 
         fig, axes = plt.subplots(N_samples, 1)
-        fig.set_figheight(5*N_samples)
+        fig.set_figheight(5 * N_samples)
         for plot_idx, mat_idx in enumerate(drawn_materials_idx):
             axes[plot_idx].set_title(self.atoms[mat_idx].get_chemical_formula())
-            plot_atoms(self.atoms[mat_idx], axes[plot_idx], rotation=('90x,45y,45z'))
+            plot_atoms(self.atoms[mat_idx], axes[plot_idx], rotation=("90x,45y,45z"))
 
         return fig
-
 
     def _plot_configurational_entropy_distribution(self):
         pass

@@ -1,4 +1,5 @@
 import logging
+from importlib import resources
 
 import numpy as np
 import polars as pl
@@ -8,14 +9,15 @@ from datasets import load_dataset
 from heos_relax.data_handling.element_sets import (
     METALS_AND_OXYGEN,
 )
-from importlib import resources
 
 logger = logging.getLogger(__name__)
 log_dir = resources.files("output")
-logging.basicConfig(filename=log_dir / 'le_mat_loading.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(
+    filename=log_dir / "le_mat_loading.log", encoding="utf-8", level=logging.INFO
+)
+
 
 class LeMaterialsDataset:
-
     @staticmethod
     def get_streaming_dataset():
         dataset = load_dataset(
