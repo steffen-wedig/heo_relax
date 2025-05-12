@@ -1,18 +1,9 @@
-
-
-OTHER_ANIONS = [
-    "F", "Cl", "Br", "I",            # halides
-    "S", "Se", "Te",                 # chalcogenides
-    "N", "P",                        # pnictides
-    "C"                              # carbides
-]
-
 METALS = {
-    # s‑block
+    # s-block
     "Li","Be","Na","Mg","K","Ca","Rb","Sr","Cs","Ba",
-    # p‑block
+    # p-block
     "Al","Ga","In","Tl","Sn","Pb","Bi",
-    # d‑block
+    # d-block
     "Sc","Ti","V","Cr","Mn","Fe","Co","Ni","Cu","Zn",
     "Y","Zr","Nb","Mo","Tc","Ru","Rh","Pd","Ag","Cd",
     "Hf","Ta","W","Re","Os","Ir","Pt","Au","Hg",
