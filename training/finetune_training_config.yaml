@@ -1,0 +1,16 @@
+name: finetune_mace_heo
+seed: 1
+multiheads_finetuning: False
+train_file: /home/steffen/projects/heos_relax/data/train.xyz
+forces_key: DFT_forces
+energy_key: DFT_energy
+valid_file: /home/steffen/projects/heos_relax/data/valid.xyz
+foundation_model: medium
+E0s: foundation
+default_dtype: float64
+energy_weight: 1.0
+forces_weight: 10.0
+lr: 0.0005
+max_num_epochs: 30
+scaling: rms_forces_scaling
+batch_size: 5
