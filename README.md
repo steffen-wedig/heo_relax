@@ -65,4 +65,62 @@ conda activate heo_relax
 pip install ./heo_relax
 ```
 
+Create the dataset by running
+```
+python scripts/load_data_from_lemat.py
+```
+Then, modify the training_config.yaml with the absolute paths to the training/ validation dataset on your machine
+and subsequently finetune with 
+
+```
+mace_run_train --config ./training/finetune_training_config.yaml 
+```
+
+Evaluation is run with 
+```
+python scripts/evaluate_models.py
+```
+
+
+## Results
+
+### Dataset Preparation
+Loaded 6463 samples from LeMaterials, with 3514 samples orignally from the Materials Project, 72 rom oqmd, and 2877 from alexandria.
+
+Most samples in the dataset contain 5 elements, i.e 4 metal cations + oxygen. Including these siginficantly expands the training set.
+
+![Distribution of elements per sample](./output/nelements_histogram.png)
+
+Some sample structures below 
+![Examplary Structures](./output/sample_structures.png)
+
+The distribution of elements in the training dataset is quite diverse, with second group alkaline earth metal elements being the most common constituents.
+
+![](./output/elemental_distribution.png)
+
+
+UMAP projection using magpie embeddings shows that the dataset does not really cluster into different splits/classes well. 
+![](./output/umap_projection.png)
+
+
+
+### Training
+
+
+
+
+### Evaluation
+
+We evaluate the force and energy error on the test set split. 
+
+Secondly, we relax rock salt structures 4x4x4 supercell structures with randomly substituted cations. The cation species are drawn with probabilities according to their molar ratios in the HEO composition. An exemplary structure is shown below. Note that this means that the composition may not reflect the molar ratios from the formula.
+
+![Rock salt random substituted test structure](output/random_generated_heo_struct_0.png)
+
+
+
+
+
+
+## Outlook
 

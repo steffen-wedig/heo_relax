@@ -14,15 +14,14 @@ dependencies = [
     "polars",
     "datasets",
     "ElementEmbeddings",
-    "umap-learn",
-
-]
-[project.optional-dependencies]
-cuequivariance = [
+    "umap-learn",  
+    "pyxtal",
     "cuequivariance",
     "cuequivariance-torch",
     "cuequivariance-ops-torch-cu12"
+
 ]
+
 
 [build-system]
 requires = ["hatchling"]

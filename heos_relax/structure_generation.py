@@ -58,7 +58,7 @@ class RandomHighEntropyOxideStructureGeneration:
 
             np.place(atomic_symbols, ca_mask, new_species)
             new_structure.set_chemical_symbols(atomic_symbols)
-
+            print(new_structure.get_chemical_formula())
             structures.append(new_structure)
 
         return structures

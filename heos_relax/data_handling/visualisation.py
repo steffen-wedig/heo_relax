@@ -1,12 +1,15 @@
 from importlib import resources
 
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 import numpy as np
 import polars as ps
 from ase import Atoms
 from ase.visualize.plot import plot_atoms
 from elementembeddings.composition import composition_featuriser
 from umap import UMAP
+from ase.data.colors import jmol_colors
+from matplotlib.patches import Patch
 
 output_dir = resources.files("output")
 
@@ -26,10 +29,10 @@ class DatasetVisualisation:
         )
 
         fig = plt.figure()
-        fig.set_figwidth(14)
-        plt.bar(counts["elements"].to_list(), counts["count"].to_list())
-        plt.xlabel("Element")
-        plt.ylabel("Frequency of occuring in the dataset")
+        fig.set_figheight(10)
+        plt.barh(counts["elements"].to_list(), counts["count"].to_list())
+        plt.ylabel("Element")
+        plt.xlabel("Frequency of occuring in the dataset")
         plt.tight_layout()
 
         return fig
@@ -58,10 +61,9 @@ class DatasetVisualisation:
         )
 
         fig, axes = plt.subplots(N_samples, 1)
-        fig.set_figheight(5 * N_samples)
+        fig.set_figheight(3 * N_samples)
         for plot_idx, mat_idx in enumerate(drawn_materials_idx):
-            axes[plot_idx].set_title(self.atoms[mat_idx].get_chemical_formula())
-            plot_atoms(self.atoms[mat_idx], axes[plot_idx], rotation=("90x,45y,45z"))
+            plot_atom_with_species_legend(self.atoms[mat_idx], axes[plot_idx])
 
         return fig
 
@@ -98,4 +100,37 @@ class DatasetVisualisation:
         figs["sample_structures"] = self._plot_sample_structures()
 
         for fig_name, fig in figs.items():
-            fig.savefig(output_dir / f"{fig_name}.pdf")
+            fig.savefig(output_dir / f"{fig_name}.png")
+
+
+def plot_atom_with_species_legend(atoms: Atoms, ax: Axes):
+
+    plot_atoms(atoms, ax, rotation=("45x,45y,45z"),show_unit_cell = False)
+    symbols = sorted(set(atoms.get_chemical_symbols()))
+
+    species_colors = {sym: jmol_colors[atoms[i].number] 
+                    for sym in symbols 
+                    for i, s in enumerate(atoms.get_chemical_symbols()) 
+                    if s == sym}
+    
+    handles = [
+    Patch(facecolor=species_colors[sym], edgecolor='k', label=sym)
+    for sym in symbols
+]
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+    ax.set_title(atoms.get_chemical_formula())
+
+    ax.legend(handles=handles,
+          title='Species',
+          loc='upper right',
+          frameon=True,
+        bbox_to_anchor=(1.1, 1),
+    borderaxespad=0)
+
+    ax.set_frame_on(False)
+
+    

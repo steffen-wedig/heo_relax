@@ -57,7 +57,7 @@ class LeMaterialsDataset:
                 df_heo_materials.vstack(filtered_by_element, in_place=True)
 
         logger.info(f"Loaded {len(df_heo_materials)} from LeMaterials")
-        logger.info(LeMaterialsDataset.check_data_source(df_heo_materials).to_dict)
+        logger.info(LeMaterialsDataset.check_data_source(df_heo_materials).to_dict())
 
         self.heo_materials_df = df_heo_materials
 

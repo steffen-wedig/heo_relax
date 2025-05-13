@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from ase import Atoms
 from ase.build import make_supercell
-from mace.calculators import MACECalculator
+from mace.calculators import MACECalculator, mace_mp
 from tqdm import tqdm
 
 from heos_relax.evaluation.eval_utils import relax_material_FIRE, relax_material_LBFGS
@@ -99,7 +99,7 @@ class RelaxTestSetGeometries(EvalTask):
                 print("Reference Structure is not at equilibrium")
                 continue
 
-            supercell_dim = math.ceil(math.cbrt(self.min_atoms_in_supercell / N_atoms))
+            supercell_dim = math.ceil((self.min_atoms_in_supercell / N_atoms)**(1/3))
 
             for _ in range(self.N_resamples):
                 mat = make_supercell(material, P=np.identity(3) * supercell_dim)
@@ -150,10 +150,14 @@ class RelaxRandomSubstitutionTask(EvalTask):
         model: MACECalculator,
     ):
         random_number_generator = np.random.default_rng(0)
+        reference_calc = MACECalculator(model_paths="/share/snw30/projects/heo_relax/data/mace-omat-0-medium.model", device = "cuda" , enable_cueq = True, default_dtype="float64")
 
-        runs_converged = np.zeros(shape=(len(self.structures, self.N_resamples)))
-        final_energies = np.zeros(shape=(len(self.structures, self.N_resamples)))
-        steps_taken = np.zeros(shape=(len(self.structures, self.N_resamples)))
+        
+        runs_converged = np.zeros(shape=(len(self.structures), self.N_resamples), dtype = bool)
+        final_energies = np.zeros(shape=(len(self.structures), self.N_resamples))
+        steps_taken = np.zeros(shape=(len(self.structures), self.N_resamples))
+
+        mace_energies =  np.zeros(shape=(len(self.structures), self.N_resamples))
 
         for structure_idx, atoms in enumerate(self.structures):
             for resampling_idx in range(self.N_resamples):
@@ -161,21 +165,31 @@ class RelaxRandomSubstitutionTask(EvalTask):
                 structure_to_relax.rattle(
                     stdev=self.rattle_noise_level, rng=random_number_generator
                 )
-                converged_flag, N_steps = relax_material_LBFGS(
+
+                trajectory_file = f"{structure_to_relax.get_chemical_formula()}_{structure_idx}.traj"
+                converged_flag, N_steps= relax_material_LBFGS(
                     material=structure_to_relax,
                     mace_calc=model,
                     ftol=self.fmax,
                     max_N_optimization_steps=self.N_max_optimization_steps,
+                    trajectory_file= trajectory_file
                 )
+
+                
+                print(converged_flag)
 
                 final_energies[structure_idx, resampling_idx] = (
                     structure_to_relax.get_potential_energy()
                 )
 
-                runs_converged[structure_idx, resampling_idx] = converged_flag
-                steps_taken[[structure_idx, resampling_idx]] = N_steps
+                
+                mace_energies[structure_idx, resampling_idx]= reference_calc.get_potential_energy(structure_to_relax)
 
-        mean_steps_to_convergence = np.mean(steps_taken, axis=1, where=runs_converged)
+                runs_converged[structure_idx, resampling_idx] = converged_flag
+                steps_taken[structure_idx, resampling_idx] = N_steps
+
+
+        mean_steps_to_convergence = np.mean(steps_taken, axis=0, where=runs_converged)
 
         ratio_runs_converged = np.sum(runs_converged) / runs_converged.size
 
@@ -183,6 +197,7 @@ class RelaxRandomSubstitutionTask(EvalTask):
             "mean_steps_to_convergence": mean_steps_to_convergence,
             "ratio_runs_converged": ratio_runs_converged,
             "final_energies": final_energies,
+            "mace_energies" : mace_energies
         }
 
         return results
