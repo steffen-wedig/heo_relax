@@ -66,11 +66,11 @@ cd heo_relax
 pip install .
 ```
 
-Create the dataset by running
+Create the dataset in directory DATA_DIR by running
 ```
-python scripts/load_data_from_lemat.py
+python scripts/load_data_from_lemat.py --dir <DATA_DIR>
 ```
-Then, modify the training_config.yaml with the absolute paths to the training/ validation dataset on your machine
+Then, *modify the training_config.yaml* (or set the appropriat train_file, validation_file flag) with the absolute paths to the training/ validation dataset on your machine
 and subsequently finetune with 
 
 ```
@@ -81,9 +81,9 @@ For "reference calculations" we use MACE OMAT, which you can download with
 ```
 wget -P ./data https://github.com/ACEsuit/mace-mp/releases/download/mace_omat_0/mace-omat-0-medium.model
 ```
-and then run the evaluation
+and then run the evaluation, where DATA_DIR contains the OMAT and finetuned model.
 ```
-python scripts/evaluate_models.py
+python scripts/evaluate_models.py --dir <DATA_DIR>
 ```
 
 The geometry relaxation dumps trajectories, which can be converted to xyz and subsequently visualized in ovito or others. 
