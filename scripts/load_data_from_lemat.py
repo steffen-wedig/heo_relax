@@ -6,8 +6,9 @@ from heos_relax.data_handling.datasets import (
 )
 from heos_relax.data_handling.lemat import LeMaterialsDataset
 from heos_relax.data_handling.visualisation import DatasetVisualisation
+from pathlib import Path
 
-output_dir = "/home/snw30/rds/hpc-work/heo/heo_relax/data"
+output_dir = Path("/home/snw30/rds/hpc-work/heo/heo_relax/data")
 
 dataset = LeMaterialsDataset()
 dataset.load_heos_from_lemat(min_nelements=5, batch_size=1024)
@@ -21,6 +22,6 @@ train_split, validation_split, test_split = split_train_val_test_dataset(
 )
 
 
-write_ase_atoms_to_file(f"{output_dir}/train.xyz", train_split)
-write_ase_atoms_to_file(f"{output_dir}/valid.xyz", validation_split)
-write_ase_atoms_to_file(f"{output_dir}/test.xyz", test_split)
+write_ase_atoms_to_file(output_dir / "train.xyz", train_split)
+write_ase_atoms_to_file(output_dir / "valid.xyz", validation_split)
+write_ase_atoms_to_file(output_dir / "test.xyz", test_split)
