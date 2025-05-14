@@ -9,9 +9,9 @@ from heos_relax.evaluation.evaluation_tasks import (
 )
 from heos_relax.structure_generation import RandomHighEntropyOxideStructureGeneration
 
-from importlib import resources
-
-finetuned_model_path = resources.files("data") / "finetune_mace_heo.model"
+from pathlib import Path
+data_dir = Path("/home/snw30/rds/hpc-work/heo/heo_relax/data")
+finetuned_model_path = datadir + "finetune_mace_heo.model"
 
 
 pretrained_model = mace_mp("medium", default_dtype="float64",device="cuda", enable_cueq = True)
@@ -20,7 +20,7 @@ finetuned_model = MACECalculator(
 )
 
 
-test_set_path = resources.files("data") / "test.xyz"
+test_set_path = data_dir + "test.xyz"
 test_set = read(test_set_path, ":")
 
 

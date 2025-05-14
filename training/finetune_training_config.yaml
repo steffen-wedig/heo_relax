@@ -11,6 +11,8 @@ default_dtype: float64
 energy_weight: 1.0
 forces_weight: 10.0
 lr: 0.0005
-max_num_epochs: 30
+max_num_epochs: 10
 scaling: rms_forces_scaling
 batch_size: 5
+device: cuda
+enable_cueq: True

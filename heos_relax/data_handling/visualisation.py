@@ -11,8 +11,6 @@ from umap import UMAP
 from ase.data.colors import jmol_colors
 from matplotlib.patches import Patch
 
-output_dir = resources.files("output")
-
 
 class DatasetVisualisation:
     def __init__(self, heo_dataframe: ps.DataFrame, heo_atoms: list[Atoms]):
@@ -91,7 +89,7 @@ class DatasetVisualisation:
     def _plot_space_group_distiribution():
         raise NotImplementedError
 
-    def plot(self):
+    def plot(self, output_dir ):
         figs: dict[str : plt.Figure] = {}
 
         figs["umap_projection"] = self._plot_umap_projection()
@@ -100,7 +98,7 @@ class DatasetVisualisation:
         figs["sample_structures"] = self._plot_sample_structures()
 
         for fig_name, fig in figs.items():
-            fig.savefig(output_dir / f"{fig_name}.png")
+            fig.savefig(f"{output_dir}/{fig_name}.png")
 
 
 def plot_atom_with_species_legend(atoms: Atoms, ax: Axes):

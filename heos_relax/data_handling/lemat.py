@@ -10,12 +10,6 @@ from heos_relax.data_handling.element_sets import (
     METALS_AND_OXYGEN,
 )
 
-logger = logging.getLogger(__name__)
-log_dir = resources.files("output")
-logging.basicConfig(
-    filename=log_dir / "le_mat_loading.log", encoding="utf-8", level=logging.INFO
-)
-
 
 class LeMaterialsDataset:
     @staticmethod
@@ -55,9 +49,6 @@ class LeMaterialsDataset:
 
             if not filtered_by_element.is_empty():
                 df_heo_materials.vstack(filtered_by_element, in_place=True)
-
-        logger.info(f"Loaded {len(df_heo_materials)} from LeMaterials")
-        logger.info(LeMaterialsDataset.check_data_source(df_heo_materials).to_dict())
 
         self.heo_materials_df = df_heo_materials
 
