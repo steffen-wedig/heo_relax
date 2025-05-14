@@ -62,7 +62,8 @@ Clone this repo, create a python 3.10 env and install required packages via pip
 git clone git@github.com:steffen-wedig/heo_relax.git
 conda create -n heo_relax python==3.10.0
 conda activate heo_relax
-pip install ./heo_relax
+cd heo_relax
+pip install .
 ```
 
 Create the dataset by running
