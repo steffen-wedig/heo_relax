@@ -8,7 +8,19 @@ from heos_relax.data_handling.datasets import (
 from heos_relax.data_handling.lemat import LeMaterialsDataset
 from heos_relax.data_handling.visualisation import DatasetVisualisation
 
-output_dir = Path("/home/snw30/rds/hpc-work/heo/heo_relax/data")
+
+import argparse
+
+parser = argparse.ArgumentParser(description="Load the LeMaterials Training Data")
+parser.add_argument(
+    "--dir",
+    dest="dir",
+    type=str,
+    required=True,
+    help="Path to the data directory"
+)
+args = parser.parse_args()
+output_dir = Path(args.dir)
 
 dataset = LeMaterialsDataset()
 dataset.load_heos_from_lemat(min_nelements=5, batch_size=1024)

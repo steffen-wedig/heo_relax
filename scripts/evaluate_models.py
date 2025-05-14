@@ -11,7 +11,18 @@ from heos_relax.evaluation.evaluation_tasks import (
 )
 from heos_relax.structure_generation import RandomHighEntropyOxideStructureGeneration
 
-data_dir = Path("/share/snw30/projects/heo_relax/data")
+import argparse
+
+parser = argparse.ArgumentParser(description="Load the LeMaterials Training Data")
+parser.add_argument(
+    "--dir",
+    dest="dir",
+    type=str,
+    required=True,
+    help="Path to the data directory"
+)
+args = parser.parse_args()
+data_dir = Path(args.dir)
 finetuned_model_path = data_dir / "finetune_mace_heo.model"
 
 
