@@ -1,6 +1,6 @@
 import math
 from abc import ABC, abstractmethod
-
+from ase.calculators.calculator import BaseCalculator
 import numpy as np
 from ase import Atoms
 from ase.build import make_supercell
@@ -12,7 +12,7 @@ from heos_relax.evaluation.eval_utils import relax_material_FIRE, relax_material
 
 class EvalTask(ABC):
     @abstractmethod
-    def evaluate(self, model: MACECalculator):
+    def evaluate(self, model: MACECalculator, model_name: str):
         pass
 
 
@@ -24,7 +24,7 @@ class EnergyForceEval(EvalTask):
     def __init__(self, materials: list[Atoms]):
         self.materials = materials
 
-    def evaluate(self, model: MACECalculator):
+    def evaluate(self, model: MACECalculator, model_name: str):
         sum_sq_energy = 0.0
         n_structures = len(self.materials)
 
@@ -62,7 +62,7 @@ class EnergyForceEval(EvalTask):
 
 
 class RelaxTestSetGeometries(EvalTask):
-    """Relaxes"""
+    """Relaxes perturbed geometries from the test set."""
 
     def __init__(
         self,
@@ -82,6 +82,7 @@ class RelaxTestSetGeometries(EvalTask):
     def evaluate(
         self,
         model: MACECalculator,
+        model_name: str
     ):
         volume_changes = []
         frac_coord_errors = []
@@ -134,13 +135,14 @@ class RelaxRandomSubstitutionTask(EvalTask):
         self,
         structures: list[Atoms],
         N_resamples: int,
+        reference_calculator : BaseCalculator, 
         rattle_noise_level: float = 0.001,
         fmax: float = 0.001,
         N_max_optimiziation_steps: int = 100,
     ):
         self.structures = structures
         self.N_resamples = N_resamples
-
+        self.reference_calc = reference_calculator
         self.rattle_noise_level = rattle_noise_level
         self.fmax = fmax
         self.N_max_optimization_steps = N_max_optimiziation_steps
@@ -148,16 +150,15 @@ class RelaxRandomSubstitutionTask(EvalTask):
     def evaluate(
         self,
         model: MACECalculator,
+        model_name: str
     ):
         random_number_generator = np.random.default_rng(0)
-        reference_calc = MACECalculator(model_paths="/share/snw30/projects/heo_relax/data/mace-omat-0-medium.model", device = "cuda" , enable_cueq = True, default_dtype="float64")
-
         
         runs_converged = np.zeros(shape=(len(self.structures), self.N_resamples), dtype = bool)
         final_energies = np.zeros(shape=(len(self.structures), self.N_resamples))
         steps_taken = np.zeros(shape=(len(self.structures), self.N_resamples))
 
-        mace_energies =  np.zeros(shape=(len(self.structures), self.N_resamples))
+        reference_energies =  np.zeros(shape=(len(self.structures), self.N_resamples))
 
         for structure_idx, atoms in enumerate(self.structures):
             for resampling_idx in range(self.N_resamples):
@@ -166,24 +167,25 @@ class RelaxRandomSubstitutionTask(EvalTask):
                     stdev=self.rattle_noise_level, rng=random_number_generator
                 )
 
-                trajectory_file = f"{structure_to_relax.get_chemical_formula()}_{structure_idx}.traj"
-                converged_flag, N_steps= relax_material_LBFGS(
-                    material=structure_to_relax,
-                    mace_calc=model,
-                    ftol=self.fmax,
-                    max_N_optimization_steps=self.N_max_optimization_steps,
-                    trajectory_file= trajectory_file
-                )
+                trajectory_file = f"{structure_to_relax.get_chemical_formula()}_{resampling_idx}_{model_name}.traj"
 
-                
-                print(converged_flag)
+                try:
+                    converged_flag, N_steps= relax_material_LBFGS(
+                        material=structure_to_relax,
+                        mace_calc=model,
+                        ftol=self.fmax,
+                        max_N_optimization_steps=self.N_max_optimization_steps,
+                        trajectory_file= trajectory_file
+                    )
+                except:
+                    continue
 
                 final_energies[structure_idx, resampling_idx] = (
                     structure_to_relax.get_potential_energy()
                 )
 
                 
-                mace_energies[structure_idx, resampling_idx]= reference_calc.get_potential_energy(structure_to_relax)
+                reference_energies[structure_idx, resampling_idx]= self.reference_calc.get_potential_energy(structure_to_relax)
 
                 runs_converged[structure_idx, resampling_idx] = converged_flag
                 steps_taken[structure_idx, resampling_idx] = N_steps
@@ -197,7 +199,7 @@ class RelaxRandomSubstitutionTask(EvalTask):
             "mean_steps_to_convergence": mean_steps_to_convergence,
             "ratio_runs_converged": ratio_runs_converged,
             "final_energies": final_energies,
-            "mace_energies" : mace_energies
+            "reference_energies" : reference_energies
         }
 
         return results
@@ -207,7 +209,7 @@ class EvalPipelineRunner:
     def __init__(self, tasks: list[EvalTask]):
         self.tasks = tasks
 
-    def evaluate_model(self, model: MACECalculator):
+    def evaluate_model(self, model: MACECalculator, model_name : str):
         # Runs all tasks stored with the given model
 
         result_dict = {}
@@ -215,7 +217,7 @@ class EvalPipelineRunner:
             try:
                 task_name = task.__class__.__name__
                 assert task_name not in result_dict
-                result_dict[task_name] = task.evaluate(model)
+                result_dict[task_name] = task.evaluate(model, model_name)
             except Exception as e:
                 print(f"{e} in Task {task_name}. Continuing.")
                 continue

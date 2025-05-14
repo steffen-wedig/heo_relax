@@ -23,8 +23,6 @@ class RandomHighEntropyOxideStructureGeneration:
     def get_cation_elements_and_probabilties(self):
         pattern = r"([A-Z][a-z]?)(\d+(\.\d+)?)"
         matches = re.findall(pattern, self.composition)
-        print(matches)
-
         # keep only non-oxygen entries, convert counts to floats
         metals = {el: float(n) for el, n, _ in matches if el != "O"}
         assert all([element in METALS for element in metals.keys()])
@@ -58,7 +56,6 @@ class RandomHighEntropyOxideStructureGeneration:
 
             np.place(atomic_symbols, ca_mask, new_species)
             new_structure.set_chemical_symbols(atomic_symbols)
-            print(new_structure.get_chemical_formula())
             structures.append(new_structure)
 
         return structures
