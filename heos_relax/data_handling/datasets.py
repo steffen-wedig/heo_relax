@@ -1,9 +1,10 @@
 import math
 import os
 import random
-import numpy as np
 from itertools import accumulate
 from pathlib import Path
+
+import numpy as np
 import numpy.testing as npt
 from ase import Atoms
 from ase.io import write

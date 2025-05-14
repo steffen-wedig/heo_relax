@@ -1,4 +1,5 @@
-from importlib import resources
+
+from pathlib import Path
 
 from heos_relax.data_handling.datasets import (
     split_train_val_test_dataset,
@@ -6,7 +7,6 @@ from heos_relax.data_handling.datasets import (
 )
 from heos_relax.data_handling.lemat import LeMaterialsDataset
 from heos_relax.data_handling.visualisation import DatasetVisualisation
-from pathlib import Path
 
 output_dir = Path("/home/snw30/rds/hpc-work/heo/heo_relax/data")
 

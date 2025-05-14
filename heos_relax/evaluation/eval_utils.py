@@ -1,8 +1,9 @@
+import numpy as np
 from ase import Atoms
 from ase.filters import ExpCellFilter
 from ase.optimize import FIRE, LBFGSLineSearch
 from mace.calculators import MACECalculator
-from ase.io import Trajectory
+
 
 def relax_material_FIRE(
     material: Atoms,
@@ -27,7 +28,7 @@ def relax_material_LBFGS(
     trajectory_file: str | None = None
 ):
     """
-    Performs LBFGS relaxation with variable cell size - does not allow for shearing the cell though.
+    Performs LBFGS relaxation with variable cell size
     """
 
     material.calc = mace_calc
@@ -40,9 +41,6 @@ def relax_material_LBFGS(
     return converged_flag, N_steps
 
 
-import numpy as np
-
-
 def pretty_print_tasks(task_dicts, task_names=None):
     """
     Pretty-print a list of task result dictionaries to the terminal.
@@ -50,6 +48,7 @@ def pretty_print_tasks(task_dicts, task_names=None):
     Parameters:
     - task_dicts: list of dicts, each mapping task names to their metric dicts.
     - task_names: optional list of names for each set of tasks; if None, tasks will be numbered.
+    Source: ChatGPT
     """
     # Flatten input: allow list of dicts or single dict
     if isinstance(task_dicts, dict):
@@ -65,7 +64,7 @@ def pretty_print_tasks(task_dicts, task_names=None):
             print(f"{task_name}:")
             for metric_name, value in metrics.items():
                 # Handle numpy arrays
-                if isinstance(value, (np.ndarray, list)):
+                if isinstance(value, np.ndarray | list):
                     arr = np.array(value)
                     if arr.ndim == 1:
                         print(f"  {metric_name}: ", np.array2string(arr, precision=3, separator=', '))
@@ -76,7 +75,7 @@ def pretty_print_tasks(task_dicts, task_names=None):
                     else:
                         print(f"  {metric_name}: array of shape {arr.shape}")
                 # Handle scalar numeric values
-                elif isinstance(value, (int, float)):
+                elif isinstance(value, int | float):
                     print(f"  {metric_name}: {value:.3f}")
                 # Fallback for other types
                 else:

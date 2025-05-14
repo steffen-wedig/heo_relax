@@ -1,15 +1,14 @@
-from importlib import resources
 
 import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
 import numpy as np
 import polars as ps
 from ase import Atoms
+from ase.data.colors import jmol_colors
 from ase.visualize.plot import plot_atoms
 from elementembeddings.composition import composition_featuriser
-from umap import UMAP
-from ase.data.colors import jmol_colors
+from matplotlib.axes import Axes
 from matplotlib.patches import Patch
+from umap import UMAP
 
 
 class DatasetVisualisation:
@@ -66,7 +65,7 @@ class DatasetVisualisation:
         return fig
 
     def _plot_configurational_entropy_distribution(self):
-        pass
+        raise NotImplementedError
 
     def _plot_n_elements_histogram(self):
         counts = self.df.group_by("nelements").count().sort(by="nelements")
@@ -106,11 +105,11 @@ def plot_atom_with_species_legend(atoms: Atoms, ax: Axes):
     plot_atoms(atoms, ax, rotation=("45x,45y,45z"),show_unit_cell = False)
     symbols = sorted(set(atoms.get_chemical_symbols()))
 
-    species_colors = {sym: jmol_colors[atoms[i].number] 
-                    for sym in symbols 
-                    for i, s in enumerate(atoms.get_chemical_symbols()) 
+    species_colors = {sym: jmol_colors[atoms[i].number]
+                    for sym in symbols
+                    for i, s in enumerate(atoms.get_chemical_symbols())
                     if s == sym}
-    
+
     handles = [
     Patch(facecolor=species_colors[sym], edgecolor='k', label=sym)
     for sym in symbols
@@ -131,4 +130,3 @@ def plot_atom_with_species_legend(atoms: Atoms, ax: Axes):
 
     ax.set_frame_on(False)
 
-    

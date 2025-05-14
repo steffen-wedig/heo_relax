@@ -12,15 +12,17 @@ class RandomHighEntropyOxideStructureGeneration:
     """
     Responsible for generating high entropy oxide configurations by randomly substituting ions from a parent crystal structure.
     Used as start of the relaxation.
+    At the moment, only generate Rock salt structures.
     """
 
-    def __init__(self, space_group, composition):
-        self.space_group = space_group
+    def __init__(self, composition):
         self.composition = composition
 
         self.random_number_generator = np.random.default_rng(0)
 
     def get_cation_elements_and_probabilties(self):
+        # Gets the ratios of all metal cations (i.e. the probabilty to draw them for random structure sampling)
+
         pattern = r"([A-Z][a-z]?)(\d+(\.\d+)?)"
         matches = re.findall(pattern, self.composition)
         # keep only non-oxygen entries, convert counts to floats
@@ -35,6 +37,8 @@ class RandomHighEntropyOxideStructureGeneration:
         return list(metals.keys()), list(metals.values())
 
     def generate_structures(self, N_samples) -> list[Atoms]:
+
+
         xtal = pyxtal()
         xtal.from_random(group=225, species=["Ca", "O"], numIons=[4, 4])
         atoms = xtal.to_ase()

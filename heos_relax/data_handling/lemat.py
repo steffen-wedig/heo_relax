@@ -1,5 +1,3 @@
-import logging
-from importlib import resources
 
 import numpy as np
 import polars as pl
@@ -22,17 +20,20 @@ class LeMaterialsDataset:
 
     @staticmethod
     def filter_elements(df_batch: pl.DataFrame, min_nelements: int) -> pl.DataFrame:
+
+        #samples have to contain oxygen and only other metals
         return df_batch.filter(
             pl.col("nelements") >= min_nelements,
             pl.col("elements").list.contains("O"),
             pl.col("elements")
             .list.eval(pl.element().is_in(METALS_AND_OXYGEN))
             .list.all(),
-            pl.col("forces").list.len() > 0,
+            pl.col("forces").list.len() > 0, # we want to train on forces so enforce that they are present in the data
         )
 
     def filter_configurational_entropy():
-        pass
+        # Conventionally, HEOs should be differentiated by their configurational entropy
+        raise NotImplementedError
 
     def load_heos_from_lemat(self, min_nelements: int = 5, batch_size: int = 1024):
         """
@@ -56,6 +57,8 @@ class LeMaterialsDataset:
 
     @staticmethod
     def check_data_source(df: pl.DataFrame):
+        # counts from which original dataset the samples are sourced
+
         counts = df.select(
             [
                 # .str.contains() returns a Boolean Series; sum() treats True as 1, False as 0
@@ -78,7 +81,7 @@ class LeMaterialsDataset:
                 cell=mat["lattice_vectors"],
             )
 
-            # Add the Reference values to the
+            # Add the Reference values to the atoms object, and name them appropriately for mace
             atoms.info["DFT_energy"] = mat["energy"]
             atoms.arrays["DFT_forces"] = np.array(mat["forces"])
             ase_atoms.append(atoms)

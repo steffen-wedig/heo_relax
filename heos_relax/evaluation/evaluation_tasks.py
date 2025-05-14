@@ -1,10 +1,11 @@
 import math
 from abc import ABC, abstractmethod
-from ase.calculators.calculator import BaseCalculator
+
 import numpy as np
 from ase import Atoms
 from ase.build import make_supercell
-from mace.calculators import MACECalculator, mace_mp
+from ase.calculators.calculator import BaseCalculator
+from mace.calculators import MACECalculator
 from tqdm import tqdm
 
 from heos_relax.evaluation.eval_utils import relax_material_FIRE, relax_material_LBFGS
@@ -18,7 +19,7 @@ class EvalTask(ABC):
 
 class EnergyForceEval(EvalTask):
     """
-    An Eval Task to calculate Energy and force RMSE on specific dataset splits
+    An Eval Task to calculate Energy and force RMSE on dataset splits
     """
 
     def __init__(self, materials: list[Atoms]):
@@ -44,7 +45,7 @@ class EnergyForceEval(EvalTask):
             n_atoms = len(mat)
 
             # accumulate energy squared error
-            sum_sq_energy += ((e_pred - e_true) / n_atoms) ** 2
+            sum_sq_energy += ((e_pred - e_true) / n_atoms) ** 2 # calcuates the energydifference per atoms
 
             # accumulate force squared error and count
             diff = f_pred - f_true
@@ -52,7 +53,7 @@ class EnergyForceEval(EvalTask):
             n_force_components += diff.size
 
         # compute RMSEs
-        rmse_energy = np.sqrt(sum_sq_energy / n_structures) * 1000
+        rmse_energy = np.sqrt(sum_sq_energy / n_structures) * 1000 # conversion to meV/atom
         rmse_forces = np.sqrt(sum_sq_forces / n_force_components) * 1000
 
         return {
@@ -62,7 +63,7 @@ class EnergyForceEval(EvalTask):
 
 
 class RelaxTestSetGeometries(EvalTask):
-    """Relaxes perturbed geometries from the test set."""
+    """Relaxes perturbed geometries from the test set"""
 
     def __init__(
         self,
@@ -97,7 +98,7 @@ class RelaxTestSetGeometries(EvalTask):
             )
 
             if max_reference_force_norm > self.fmax:
-                print("Reference Structure is not at equilibrium")
+                print("Reference Structure is not at equilibrium") # Dataset contains nonequilibrium configs, so its necessary to check, wether the forces are smaller then the tolerance (otherwise the model couldnt relax to that geometry)
                 continue
 
             supercell_dim = math.ceil((self.min_atoms_in_supercell / N_atoms)**(1/3))
@@ -107,7 +108,7 @@ class RelaxTestSetGeometries(EvalTask):
                 reference_volume = mat.get_volume()
                 reference_frac_coords = mat.get_scaled_positions()
 
-                mat.rattle(stdev=self.rattle_noise_level, rng=random_number_generator)
+                mat.rattle(stdev=self.rattle_noise_level, rng=random_number_generator) # Applies some noise to atom positions to perturb it from orignal
                 relax_material_FIRE(mat, model)
 
                 # Calculate cell vector loss
@@ -135,7 +136,7 @@ class RelaxRandomSubstitutionTask(EvalTask):
         self,
         structures: list[Atoms],
         N_resamples: int,
-        reference_calculator : BaseCalculator, 
+        reference_calculator : BaseCalculator,
         rattle_noise_level: float = 0.001,
         fmax: float = 0.001,
         N_max_optimiziation_steps: int = 100,
@@ -153,7 +154,7 @@ class RelaxRandomSubstitutionTask(EvalTask):
         model_name: str
     ):
         random_number_generator = np.random.default_rng(0)
-        
+
         runs_converged = np.zeros(shape=(len(self.structures), self.N_resamples), dtype = bool)
         final_energies = np.zeros(shape=(len(self.structures), self.N_resamples))
         steps_taken = np.zeros(shape=(len(self.structures), self.N_resamples))
@@ -162,7 +163,7 @@ class RelaxRandomSubstitutionTask(EvalTask):
 
         for structure_idx, atoms in enumerate(self.structures):
             for resampling_idx in range(self.N_resamples):
-                structure_to_relax = atoms.copy()
+                structure_to_relax = atoms.copy() # have to make copy because structures are updated in place
                 structure_to_relax.rattle(
                     stdev=self.rattle_noise_level, rng=random_number_generator
                 )
@@ -177,14 +178,14 @@ class RelaxRandomSubstitutionTask(EvalTask):
                         max_N_optimization_steps=self.N_max_optimization_steps,
                         trajectory_file= trajectory_file
                     )
-                except:
+                except Exception:
                     continue
 
                 final_energies[structure_idx, resampling_idx] = (
                     structure_to_relax.get_potential_energy()
                 )
 
-                
+
                 reference_energies[structure_idx, resampling_idx]= self.reference_calc.get_potential_energy(structure_to_relax)
 
                 runs_converged[structure_idx, resampling_idx] = converged_flag

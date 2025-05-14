@@ -1,11 +1,9 @@
 import matplotlib.pyplot as plt
+
 from heos_relax.data_handling.visualisation import plot_atom_with_species_legend
 from heos_relax.structure_generation import RandomHighEntropyOxideStructureGeneration
 
-
-
-generator = RandomHighEntropyOxideStructureGeneration(
-    space_group=225, composition="Mg1Ni1Cu1Co1Zn1O5"
+generator = RandomHighEntropyOxideStructureGeneration( composition="Mg1Ni1Cu1Co1Zn1O5"
 ).generate_structures(1)
 
 structures = generator
