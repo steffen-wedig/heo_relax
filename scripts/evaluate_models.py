@@ -46,7 +46,7 @@ relax_task_random_substitution = RelaxRandomSubstitutionTask(
     fmax=0.05,
 )
 
-tasks = [energy_force_task] #, relax_task_random_substitution]
+tasks = [energy_force_task , relax_task_random_substitution]
 
 
 pretrained_model_eval_results = EvalPipelineRunner(tasks).evaluate_model(

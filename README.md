@@ -48,11 +48,11 @@ We essentially ignore catastrophic forgetting, and forego replay finetuning, bec
 
 Compare the energy/force RMSEs for finetuned model
 
-(In-distribution eval task: Take the DFT relaxed structures, rattle and relax with MLIP and check the root-mean-square distance (RMSD)/energy difference to the reference.) This is implemented but not really considered in the evaluation, because the comparison would require running DFT.
+In-distribution eval task: Take the DFT relaxed structures, rattle and relax with MLIP and check the root-mean-square distance (RMSD)/energy difference to the reference.
 
 Out-of-distribution eval task: Start from random substituted parent crystals and relax, and check which model reaches lower energies. However, without performing further DFT, we can't really validate which model  
 
-Compare rate of convergence for both models.
+Compare rate of geometry optimization convergence for both models.
 
 ## Installation
 
@@ -76,7 +76,11 @@ and subsequently finetune with
 mace_run_train --config ./training/finetune_training_config.yaml 
 ```
 
-Evaluation is run with 
+For "reference calculations" we use MACE OMAT, which you can download with 
+```
+wget -P ./data https://github.com/ACEsuit/mace-mp/releases/download/mace_omat_0/mace-omat-0-medium.model
+```
+and then run the evaluation
 ```
 python scripts/evaluate_models.py
 ```
@@ -105,6 +109,7 @@ The distribution of elements in the training dataset is quite diverse, with seco
 
 
 UMAP projection using magpie embeddings shows that the dataset does not really cluster into different splits/classes well. 
+
 ![](./data/umap_projection.png)
 
 
@@ -183,7 +188,6 @@ Another step would be performing active learning from the relaxation trajectorie
 
 The training process can be imporved by searching for better hyperparameters, investigating the phenomena of catastrophic forgetting.  
 
-The evaluation is not complete without reference calculations (i.e single point DFT for the relaxed geometries) to compare which models actually found lower lying minima. The potential energies of the models are not directly comparable, because training shift the potential energy surface of the model (which can be multiple eV). Further, this kind of geometry optimization happens at T = 0K, which may not find the actual stable phase/ structure at finite temperature. Calculating free energy differences would be required. Thirdly, the evaluation would be improved by selecting more appropriate evaluation structures. Here, we just randomly replaced cations on the lattice site, but this does not necessarily reflect the properties of a macroscopic oxide. Methods like [special quasirandom structure](http://grandcentral.apam.columbia.edu:5555/tutorials/dft_procedures/sqs/index.html) (SQS) generation might be used to reproduce the a macroscopic unordered solid solution.  
-Lastly, for simiplicity the evaluation tasks are written in a sequential manner here, whihc causes low throughput and low GPU utilization. Packages like the recently released [torchsim ](https://github.com/Radical-AI/torch-sim) batch computations. As all geometry optimizations are indepedent from another, using frameworks like this would increase thorughput significantly.
+The evaluation is not complete without reference calculations (i.e single point DFT for the relaxed geometries) to compare which models actually found lower lying minima. The potential energies of the models are not directly comparable, because training shift the potential energy surface of the model (which can be multiple eV). Further, this kind of geometry optimization happens at T = 0K, which may not find the actual stable phase/ structure at finite temperature. Calculating free energy differences would be required. Thirdly, the evaluation would be improved by selecting more appropriate evaluation structures. Here, we just randomly replaced cations on the lattice site, but this does not necessarily reflect the properties of a macroscopic oxide. Methods like [special quasirandom structure](http://grandcentral.apam.columbia.edu:5555/tutorials/dft_procedures/sqs/index.html) (SQS) generation might be used to reproduce the a macroscopic unordered solid solution. Lastly, for simiplicity the evaluation tasks are written in a sequential manner here, which causes low throughput and low GPU utilization. Packages like the recently released [torchsim ](https://github.com/Radical-AI/torch-sim) batch computations. As all geometry optimizations are indepedent from another, using frameworks like this would increase thorughput significantly.
 
 
